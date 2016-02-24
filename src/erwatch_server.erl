@@ -5,7 +5,9 @@
          start_link/3,
          add_wildcard/2,
          pause/1,
-         resume/1]).
+         resume/1,
+         set_interval/2,
+         get_changes/1]).
 -export([init/1,
          handle_call/3,
          handle_cast/2,
@@ -13,12 +15,12 @@
          code_change/3,
          terminate/2]).
 
--define(DEFAULT_INTERVAL, 5000).
+-define(DEFAULT_INTERVAL, 0).
 
 -record(state, {parent,
                 ref,
                 path_diffs = [],
-                interval = ?DEFAULT_INTERVAL,
+                interval = 0,
                 opt_interval = ?DEFAULT_INTERVAL,
                 registered = false}).
 
@@ -39,6 +41,12 @@ pause(Pid) ->
 resume(Pid) ->
     gen_server:cast(Pid, resume).
 
+set_interval(Pid, Interval) ->
+    gen_server:cast(Pid, {set_interval, Interval}).
+
+get_changes(Pid) ->
+    gen_server:call(Pid, get_changes).
+
 %% == Callbacks
 
 init([Parent, Ref, Opts]) ->
@@ -49,12 +57,17 @@ init([Parent, Ref, Opts]) ->
                    opt_interval = Interval},
     {ok, State, 0}.
 
-handle_call(_Msg, _From, State) ->
-    {reply, ok, State}.
+handle_call(get_changes, _From, #state{interval = Interval} = State) ->
+    {ChangeSets, NewState} = scan_path_diffs(State),
+    case Interval of
+        0 ->
+            {reply, ChangeSets, NewState};
+        _ ->
+            {reply, ChangeSets, NewState, Interval}
+    end.
 
 handle_cast({add_wildcard, Wildcard}, State) ->
-    {ChangeSet, NewState} = add_wildcard_entry(Wildcard, State),
-    notify_parent_initial(ChangeSet, State),
+    NewState = add_wildcard_entry(Wildcard, State),
     noreply_timeout(NewState);
 
 handle_cast(pause, State) ->
@@ -63,6 +76,11 @@ handle_cast(pause, State) ->
 
 handle_cast(resume, #state{opt_interval = Interval} = State) ->
     NewState = State#state{interval = Interval},
+    noreply_timeout(NewState);
+
+handle_cast({set_interval, Interval}, State) ->
+    NewState = State#state{interval = Interval,
+                           opt_interval = Interval},
     noreply_timeout(NewState).
 
 handle_info(timeout, #state{registered = false,
@@ -94,9 +112,8 @@ get_interval(Opts) ->
 
 add_wildcard_entry(Wildcard, #state{path_diffs = PathDiffs} = State) ->
     PathDiff = path_diff:new(Wildcard),
-    {InitialChangeSet, NewPathDiff} = path_diff:run(PathDiff),
-    NewPathDiffs = [NewPathDiff | PathDiffs],
-    {InitialChangeSet, State#state{path_diffs = NewPathDiffs}}.
+    NewPathDiffs = [PathDiff | PathDiffs],
+    State#state{path_diffs = NewPathDiffs}.
 
 scan_path_diffs(#state{path_diffs = PathDiffs} = State) ->
     F = fun(PathDiff, {ChangeSets, PDs}) ->
@@ -118,7 +135,3 @@ notify_parent(ChangeSets, #state{parent = Parent,
         _ ->
             Parent ! {erwatch@changes, {watch, Ref}, ChangeSets}
     end.
-
-notify_parent_initial(ChangeSet, #state{parent = Parent,
-                                        ref = Ref}) ->
-    Parent ! {erwatch@initial, {watch, Ref}, ChangeSet}.
