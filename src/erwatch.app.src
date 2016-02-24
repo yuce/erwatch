@@ -1,0 +1,16 @@
+{application, 'erwatch',
+ [{description, "Watch files and directories for changes."},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {'erwatch_app', []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {maintainers, ["Yuce Tekol"]},
+  {licenses, ["MIT"]},
+  {links, [{"Github", "https://github.com/yuce/erwatch.git"}]}
+ ]}.
