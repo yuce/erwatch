@@ -16,8 +16,8 @@ in your `rebar.config`:
 {deps[erwatch]}.
 ```
 
-Since **Erwatch** is an OTP application, it is required to be started before
-using. You can do that by including `erwatch` in your `*.app.src` file, like:
+Since **Erwatch** is an OTP application, it must be started before
+using. You can do that by including `erwatch` in your `*.app.src` or `*.app` file, like:
 
 ```erlang
 ...
