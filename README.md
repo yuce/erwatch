@@ -13,7 +13,7 @@ it is available on [hex.pm](https://hex.pm/). Just include the following
 in your `rebar.config`:
 
 ```erlang
-{deps[nats_msg]}.
+{deps[erwatch]}.
 ```
 
 Since **Erwatch** is an OTP application, it is required to be started before
