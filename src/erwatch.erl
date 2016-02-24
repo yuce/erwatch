@@ -18,9 +18,9 @@ new(Opts) ->
     {ok, _Pid} = erwatch_server_sup:start_child(self(), Ref, Opts),
     {ok, {watch, Ref}}.
 
--spec add_wildcard(Watch :: watch(), Wildcard :: string()) ->
+-spec add_wildcard(Wildcard :: string(), Watch :: watch()) ->
     ok | {error, not_found}.
-add_wildcard({watch, Ref}, Wildcard) ->
+add_wildcard(Wildcard, {watch, Ref}) ->
     run_ref(fun(Pid) -> erwatch_server:add_wildcard(Pid, Wildcard) end, Ref).
 
 -spec remove(Watch :: watch()) ->
