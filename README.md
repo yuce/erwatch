@@ -152,14 +152,14 @@ create, modify, delete `/tmp/bar2`.
 Receive changes:
 
 ```erlang
-loop(Watch) ->
+loop() ->
     receive
         {erwatch@changes, Watch, ChangeSet} ->
             % do something with `ChangeSet`
-            loop(Watch)
+            loop()
         _ ->
             % received some other message...
-            loop(Watch)
+            loop()
     end.
 ```
 The `Changes` value might be:
