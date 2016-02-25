@@ -1,13 +1,13 @@
-{application, 'erwatch',
- [{description, "Watch files and directories for changes."},
-  {vsn, "0.2.0"},
+{application, erwatch,
+ [{description, "Erwatch is an Erlang/OTP application for tracking changes in a file system."},
+  {vsn, "0.2.1"},
   {registered, []},
-  {mod, {'erwatch_app', []}},
+  {mod, {erwatch_app, []}},
   {applications,
    [kernel,
     stdlib
    ]},
-  {env,[]},
+  {env, []},
   {modules, []},
 
   {maintainers, ["Yuce Tekol"]},
