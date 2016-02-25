@@ -162,7 +162,7 @@ loop() ->
             loop()
     end.
 ```
-The `Changes` value might be:
+The `ChangeSet` value might be:
 
 ```erlang
 [{added,"/tmp/foo1/myfile"},
