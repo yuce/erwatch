@@ -163,5 +163,5 @@ notify_parent(ChangeSets, #state{parent = Parent,
     case ChangeSets of
         [] -> ok;
         _ ->
-            Parent ! {erwatch@changes, {watch, Ref}, ChangeSets}
+            Parent ! {erwatch@changes, {erwatch@ref, Ref}, ChangeSets}
     end.

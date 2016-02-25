@@ -9,8 +9,8 @@ main(Paths) ->
         true ->
             lists:foreach(fun(P) -> io:format("Watching ~s~n", [P]) end, Paths),
             application:ensure_all_started(erwatch),
-            _Watch = create_watch(Paths),
-            loop();
+            Watch = create_watch(Paths),
+            loop(Watch);
         _ ->
             io:format("Check your paths.")
     end.
@@ -38,14 +38,14 @@ add_wildcard(Path, Watch) ->
         _ -> ok
     end.
 
-loop() ->
+loop(Watch) ->
     receive
-        {erwatch@changes, _Watch, Changes} ->
+        {erwatch@changes, Watch, Changes} ->
             print_changes(Changes),
-            loop();
+            loop(Watch);
         Other ->
             io:format("Received unknown message: ~p~n", [Other]),
-            loop()
+            loop(Watch)
     end.
 
 print_changes(Changes) ->
