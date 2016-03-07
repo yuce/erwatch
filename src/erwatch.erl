@@ -30,9 +30,8 @@
 
 -module(erwatch).
 
--export([new/0,
-         new/1,
-         add_wildcard/2,
+-export([new/1,
+         new/2,
          pause/1,
          resume/1,
          remove/1,
@@ -43,19 +42,15 @@
 
 -export_type([watch/0]).
 
-new() ->
-    new([]).
+new(Wildcards) ->
+    new(Wildcards, []).
 
--spec new(Opts :: list()) -> {ok, watch()}.
-new(Opts) ->
+-spec new(Wildcards :: [string()], Opts :: list()) ->
+    {ok, watch()}.
+new(Wildcards, Opts) ->
     Ref = make_ref(),
-    {ok, _Pid} = erwatch_server_sup:start_child(self(), Ref, Opts),
+    {ok, _Pid} = erwatch_server_sup:start_child(self(), Ref, Wildcards, Opts),
     {ok, {erwatch@ref, Ref}}.
-
--spec add_wildcard(Wildcard :: string(), Watch :: watch()) ->
-    ok | {error, not_found}.
-add_wildcard(Wildcard, {erwatch@ref, Ref}) ->
-    run_ref(fun(Pid) -> erwatch_server:add_wildcard(Pid, Wildcard) end, Ref).
 
 -spec pause(Watch :: watch()) -> ok.
 pause({erwatch@ref, Ref}) ->

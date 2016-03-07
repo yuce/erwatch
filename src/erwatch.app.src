@@ -1,6 +1,6 @@
 {application, erwatch,
  [{description, "Erwatch is an Erlang/OTP application for tracking changes in a file system."},
-  {vsn, "0.2.2"},
+  {vsn, "0.3.0"},
   {registered, []},
   {mod, {erwatch_app, []}},
   {applications,

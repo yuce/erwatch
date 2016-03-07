@@ -31,9 +31,8 @@
 -module(erwatch_server).
 -behaviour(gen_server).
 
--export([start_link/2,
-         start_link/3,
-         add_wildcard/2,
+-export([start_link/3,
+         start_link/4,
          pause/1,
          resume/1,
          set_interval/2,
@@ -49,6 +48,7 @@
 
 -record(state, {parent,
                 ref,
+                wildcards = [],
                 path_diffs = [],
                 interval = 0,
                 opt_interval = ?DEFAULT_INTERVAL,
@@ -56,14 +56,11 @@
 
 %% == API
 
-start_link(Parent, Ref) ->
-    start_link(Parent, Ref, []).
+start_link(Parent, Ref, Wildcards) ->
+    start_link(Parent, Ref, Wildcards, []).
 
-start_link(Parent, Ref, Opts) ->
-    gen_server:start_link(?MODULE, [Parent, Ref, Opts], []).
-
-add_wildcard(Pid, Wildcard) ->
-    gen_server:cast(Pid, {add_wildcard, Wildcard}).
+start_link(Parent, Ref, Wildcards, Opts) ->
+    gen_server:start_link(?MODULE, [Parent, Ref, Wildcards, Opts], []).
 
 pause(Pid) ->
     gen_server:cast(Pid, pause).
@@ -79,10 +76,11 @@ get_changes(Pid) ->
 
 %% == Callbacks
 
-init([Parent, Ref, Opts]) ->
+init([Parent, Ref, Wildcards, Opts]) ->
     Interval = get_interval(Opts),
     State = #state{parent = Parent,
                    ref = Ref,
+                   wildcards = Wildcards,
                    interval = Interval,
                    opt_interval = Interval},
     {ok, State, 0}.
@@ -95,10 +93,6 @@ handle_call(get_changes, _From, #state{interval = Interval} = State) ->
         _ ->
             {reply, ChangeSets, NewState, Interval}
     end.
-
-handle_cast({add_wildcard, Wildcard}, State) ->
-    NewState = add_wildcard_entry(Wildcard, State),
-    noreply_timeout(NewState);
 
 handle_cast(pause, State) ->
     NewState = State#state{interval = 0},
@@ -114,9 +108,11 @@ handle_cast({set_interval, Interval}, State) ->
     noreply_timeout(NewState).
 
 handle_info(timeout, #state{registered = false,
-                            ref = Ref} = State) ->
+                            ref = Ref,
+                            wildcards = Wildcards} = State) ->
     erwatch_registry:add(Ref, self()),
-    noreply_timeout(State#state{registered = true});
+    NewState = add_wildcard_entries(Wildcards, State),
+    noreply_timeout(NewState#state{registered = true});
 
 handle_info(timeout, State) ->
     {WildcardChangeSets, NewState} = scan_path_diffs(State),
@@ -140,10 +136,14 @@ noreply_timeout(#state{interval = Interval} = State) ->
 get_interval(Opts) ->
     proplists:get_value(interval, Opts, ?DEFAULT_INTERVAL).
 
-add_wildcard_entry(Wildcard, #state{path_diffs = PathDiffs} = State) ->
-    PathDiff = path_diff:new(Wildcard),
-    NewPathDiffs = [PathDiff | PathDiffs],
-    State#state{path_diffs = NewPathDiffs}.
+add_wildcard_entries(Wildcards, State) ->
+    F = fun(W) ->
+        PD1 = path_diff:new(W),
+        {_, PD2} = path_diff:run(PD1),
+        PD2
+    end,
+    PathDiffs = lists:map(F, Wildcards) ,
+    State#state{path_diffs = PathDiffs}.
 
 scan_path_diffs(#state{path_diffs = PathDiffs} = State) ->
     F = fun(PathDiff, {ChangeSets, PDs}) ->

@@ -1,5 +1,5 @@
 #! /usr/bin/env escript
-%%! -pa _build/default/lib/erwatch/ebin
+%%! -pa _build/default/lib/erwatch/ebin -pa _build/default/lib/simpre/ebin
 
 main([]) ->
     io:format("Usage: watch.escript path1 [path2, path3, ...]~n");
@@ -27,15 +27,14 @@ ensure_exists(Paths) ->
     lists:foldl(F, true, Paths).
 
 create_watch(Paths) ->
-    {ok, Watch} = erwatch:new([{interval, 1000}]),
-    lists:foreach(fun(P) -> add_wildcard(P, Watch) end, Paths),
+    NewPaths = lists:map(fun(P) -> wildcard(P) end, Paths),
+    {ok, Watch} = erwatch:new(NewPaths, [{interval, 1000}]),
     Watch.
 
-add_wildcard(Path, Watch) ->
-    erwatch:add_wildcard(Path, Watch),
+wildcard(Path) ->
     case filelib:is_dir(Path) of
-        true -> erwatch:add_wildcard(Path ++ "/**", Watch);
-        _ -> ok
+        true -> Path ++ "/**";
+        _ -> Path
     end.
 
 loop(Watch) ->

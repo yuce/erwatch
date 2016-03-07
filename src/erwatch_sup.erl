@@ -45,20 +45,22 @@ start_link() ->
 %% == Callbacks
 
 init([]) ->
-    ErwatchRegistrySpec = #{
-        id => erwatch_registry,
-        start => {erwatch_registry, start_link, []},
-        restart => permanent,
-        shutdown => 1000,
-        type => worker,
-        modules => [erwatch_registry]},
-    ErwatchServerSupSpec = #{
-        id => erwatch_server_sup,
-        start => {erwatch_server_sup, start_link, []},
-        restart => permanent,
-        shutdown => 1000,
-        type => supervisor,
-        modules => [erwatch_server_sup]},
-    SupSpec = {{rest_for_one, 10, 60}, [ErwatchRegistrySpec,
-                                        ErwatchServerSupSpec]},
+    SupSpec = {{rest_for_one, 10, 60}, [registry_spec(),
+                                        server_spec()]},
     {ok, SupSpec}.
+
+registry_spec() ->
+    #{id => erwatch_registry,
+      start => {erwatch_registry, start_link, []},
+      restart => permanent,
+      shutdown => 1000,
+      type => worker,
+      modules => [erwatch_registry]}.
+
+server_spec() ->
+    #{id => erwatch_server_sup,
+      start => {erwatch_server_sup, start_link, []},
+      restart => permanent,
+      shutdown => 1000,
+      type => supervisor,
+      modules => [erwatch_server_sup]}.

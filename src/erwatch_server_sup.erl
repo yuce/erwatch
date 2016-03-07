@@ -32,7 +32,7 @@
 -behaviour(supervisor).
 
 -export([start_link/0,
-         start_child/3,
+         start_child/4,
          stop_child/1]).
 -export([init/1]).
 
@@ -41,9 +41,9 @@
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
-start_child(Parent, Ref, Opts) ->
+start_child(Parent, Ref, Wildcards, Opts) ->
     ChildSpec = #{id => Ref,
-                  start => {erwatch_server, start_link, [Parent, Ref, Opts]},
+                  start => {erwatch_server, start_link, [Parent, Ref, Wildcards, Opts]},
                   restart => transient,
                   shutdown => 1000,
                   modules => [erwatch_server]},

@@ -1,8 +1,8 @@
 # Erwatch
 
 **Erwatch** is an Erlang/OTP application for tracking changes in
-a file system. It doesn't have any dependency other than a recent version of
-Erlang/OTP (17+ *should* be OK) and optionally [rebar3](http://www.rebar3.org/).
+a file system. It can be used with Erlang/OTP (17+ *should* be OK) and
+optionally [rebar3](http://www.rebar3.org/).
 It is only tested on Linux/OSX, but only Erlang/OTP standard library functions
 are used, so it should work on any platform where Erlang/OTP runs.
 
@@ -48,29 +48,24 @@ using. You can do that by including `erwatch` in your `*.app.src` or `*.app` fil
 **Erwatch** supports both the synchronous/on demand and asynchronous/message based way
 of tracking changes.
 
-Use `erwatch:new/0` to create a watch with default options, or `erwatch:new/1`
-to create a watch with specified options:
+Use `erwatch:new/1` to create a watch with default options, or `erwatch:new/2`
+to create a watch with specified options. The list of wildcards is mandatory for both:
 
 ```erlang
 % on demand watch:
-{ok, Watch} = erwatch:new(),
+{ok, Watch} = erwatch:new(["/tmp/somedir/**/src/*.erl"]),
 % a watch that fires every 3000 milliseconds, and sends a message on changes
-{ok, AnotherWatch} = erwatch:new([{interval, 3000}]).
+{ok, AnotherWatch} = erwatch:new(["/tmp/somedir/**/src/*.erl"],
+                                 [{interval, 3000}]).
 ```
 
-You can add any wildcard to the watch. See
-[filelib:wildcard/1](http://erlang.org/doc/man/filelib.html#wildcard-1)
-documentation for available patterns. Note that, the given wildcard is
+See [filelib:wildcard/1](http://erlang.org/doc/man/filelib.html#wildcard-1)
+documentation for available wildcard patterns. Note that, the given wildcard is
 relative to the current working directory.
-
-```erlang
-erwatch:add_wildcard("/tmp/somedir/**/src/*.erl", Watch).
-```
 
 Whether you use *synchronous* or *asynchronous* watches, the change sets are
 in the form of list of `{Action, Path}` pairs, where `Action` is one of
-`added`, `updated` or `deleted`. Note that, the very first change set will
-contain all resolved paths in the given wildcards.
+`added`, `updated` or `deleted`.
 
 You can change the poll interval and switch between synchronous
 and asynchronous modes using `erwatch:set_interval/2`. An interval of
@@ -99,13 +94,7 @@ erwatch:remove(Watch).
 Create a watch:
 
 ```erlang
-{ok, Watch} = erwatch:new().
-```
-Add one or more wildcards to the watch:
-
-```erlang
-erwatch:add_wildcard("/tmp/foo1/*", Watch),
-erwatch:add_wildcard("/tmp/bar2", Watch),
+{ok, Watch} = erwatch:new(["/tmp/foo1/*", "/tmp/bar2"]).
 ```
 
 Assuming `/tmp/foo1` is a directory and `/tmp/bar2` is a file,
@@ -136,13 +125,8 @@ file system changes.
 Create a watch with an interval:
 
 ```erlang
-{ok, Watch} = erwatch:new([{interval, 1000}]).
-```
-Add one or more wildcards to the watch:
-
-```erlang
-erwatch:add_wildcard("/tmp/foo1/*", Watch),
-erwatch:add_wildcard("/tmp/bar2", Watch),
+{ok, Watch} = erwatch:new(["/tmp/foo1/*", "/tmp/bar2"],
+                          [{interval, 1000}]).
 ```
 
 Assuming `/tmp/foo1` is a directory and `/tmp/bar2` is a file,
@@ -173,7 +157,7 @@ The `ChangeSet` value might be:
 
 ## Examples
 
-See [examples/erwatch.escript](https://github.com/yuce/erwatch/blob/master/examples/watch.escript)
+See [examples/watch.escript](https://github.com/yuce/erwatch/blob/master/examples/watch.escript)
 for a simple file watcher.
 
 ## License
