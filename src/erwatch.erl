@@ -68,6 +68,7 @@ resume({erwatch@ref, Ref}) ->
 -spec remove(Watch :: watch()) ->
     ok | {error, not_found}.
 remove({erwatch@ref, Ref}) ->
+    erwatch_registry:remove(Ref),
     erwatch_server_sup:stop_child(Ref).
 
 -spec set_interval(Interval :: non_neg_integer(), Watch :: watch()) -> ok.
