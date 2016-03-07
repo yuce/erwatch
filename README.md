@@ -6,6 +6,12 @@ optionally [rebar3](http://www.rebar3.org/).
 It is only tested on Linux/OSX, but only Erlang/OTP standard library functions
 are used, so it should work on any platform where Erlang/OTP runs.
 
+## News
+
+* **2016-03-08**: Major change in **Erwatch** API.
+    * Removed `erwatch:add_wildcard/2` function. You have to specify the wildcards to `erwatch:new/1` or `erwatch:new/2` instead.
+    * The initial changesets are not returned. Use `filelib:wildcard/1` or `filelib:wildcard/2` instead.
+
 ## Install
 
 **Erwatch** uses [rebar3](http://www.rebar3.org/) to build and tests and
@@ -15,6 +21,17 @@ in your `rebar.config`:
 ```erlang
 {deps, [erwatch]}.
 ```
+
+## Build
+
+    $ rebar3 compile
+
+## Usage
+
+> Warning!
+> Erwatch (*currently*) uses polling to determine file system changes.
+> Setting the poll interval too frequent (lower) is not recommended
+> for wildcards which may return a large number of paths.
 
 Since **Erwatch** is an OTP application, it must be started before
 using. You can do that by including `erwatch` in your `*.app.src` or `*.app` file, like:
@@ -29,21 +46,16 @@ using. You can do that by including `erwatch` in your `*.app.src` or `*.app` fil
 ...
 ```
 
+Or, start it manually:
+
+```erlang
+ok = application:start(erwatch).
+```
+
 **rebar3** has a nice way of starting apps in the shell, you can try:
 
     $ rebar3 shell --apps rewatch
 
-
-## Build
-
-    $ rebar3 compile
-
-## Usage
-
-> Warning!
-> Erwatch (*currently*) uses polling to determine file system changes.
-> Setting the poll interval too frequent (lower) is not recommended
-> for wildcards which may return a large number of paths.
 
 **Erwatch** supports both the synchronous/on demand and asynchronous/message based way
 of tracking changes.
