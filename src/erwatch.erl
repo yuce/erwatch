@@ -42,6 +42,10 @@
 
 -export_type([watch/0]).
 
+-define(REF(Ref), {erwatch@ref, Ref}).
+
+%% == API
+
 new(Wildcards) ->
     new(Wildcards, []).
 
@@ -50,29 +54,29 @@ new(Wildcards) ->
 new(Wildcards, Opts) ->
     Ref = make_ref(),
     {ok, _Pid} = erwatch_server_sup:start_child(self(), Ref, Wildcards, Opts),
-    {ok, {erwatch@ref, Ref}}.
+    {ok, ?REF(Ref)}.
 
 -spec pause(Watch :: watch()) -> ok.
-pause({erwatch@ref, Ref}) ->
+pause(?REF(Ref)) ->
     run_ref(fun(Pid) -> erwatch_server:pause(Pid) end, Ref).
 
 -spec resume(Watch :: watch()) -> ok.
-resume({erwatch@ref, Ref}) ->
+resume(?REF(Ref)) ->
     run_ref(fun(Pid) -> erwatch_server:resume(Pid) end, Ref).
 
 -spec remove(Watch :: watch()) ->
     ok | {error, not_found}.
-remove({erwatch@ref, Ref}) ->
+remove(?REF(Ref)) ->
     erwatch_registry:remove(Ref),
     erwatch_server_sup:stop_child(Ref).
 
 -spec set_interval(Interval :: non_neg_integer(), Watch :: watch()) -> ok.
-set_interval(Interval, {erwatch@ref, Ref}) ->
+set_interval(Interval, ?REF(Ref)) ->
     run_ref(fun(Pid) -> erwatch_server:set_interval(Pid, Interval) end, Ref).
 
 -spec get_changes(Watch :: watch()) ->
     [path_diff:changeset()].
-get_changes({erwatch@ref, Ref}) ->
+get_changes(?REF(Ref)) ->
     run_ref(fun(Pid) -> erwatch_server:get_changes(Pid) end, Ref).
 
 run_ref(Fun, Ref) ->
